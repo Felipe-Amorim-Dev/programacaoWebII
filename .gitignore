@@ -1,0 +1,110 @@
+# =========================
+# Node.js  TypeScript
+# =========================
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build  Output
+dist
+build
+out
+coverage
+.tmp
+.temp
+
+# TypeScript
+.tsbuildinfo
+
+# Environment
+.env
+.env.
+!.env.example
+
+# Logs
+logs
+.log
+
+# IDE  Editor
+.vscode
+.idea
+.swp
+.swo
+.bak
+.tmp
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# NestJS  Express
+# =========================
+.pid
+.seed
+.pid.lock
+
+# =========================
+# Prisma
+# =========================
+prismadev.db
+prismadev.db-journal
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Testing
+# =========================
+coverage
+.nyc_output
+
+# =========================
+# Swagger  Generated
+# =========================
+swagger.json
+swagger.yaml
+
+# =========================
+# Uploads  Temp files
+# =========================
+uploads
+tmp
+temp
+
+# =========================
+# Security
+# =========================
+.pem
+.key
+.crt
+.pfx
+
+# =========================
+# Build caches
+# =========================
+.cache
+.eslintcache
+
+# =========================
+# Optional if using Next.js
+# =========================
+.next
+
+# =========================
+# Optional if using React
+# =========================
+storybook-static
+
+# =========================
+# Optional if using Angular
+# =========================
+.angular
