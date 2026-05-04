@@ -1,107 +1,82 @@
-import * as http from "node:http";
-import { CreatePartidaDto } from "./app/dtos/createPartidaDto";
+import express, { Request, Response } from "express";
+import cors from "cors";
+
+import { setupSwagger } from "./Config/Swagger";
+
 import { CreateTimeDto } from "./app/dtos/createTimeDto";
+import { CreatePartidaDto } from "./app/dtos/createPartidaDto";
 
 import { TimeService } from "./app/Services/time.service";
 import { PartidaService } from "./app/Services/partida.service";
 
+const app = express();
+const port = 3000;
+
+app.use(cors());
+app.use(express.json());
+
+setupSwagger(app);
+
 const timeService = new TimeService();
 const partidaService = new PartidaService();
 
-function enviarResposta(
-  res: http.ServerResponse,
-  statusCode: number,
-  dados: unknown
-): void {
-  res.writeHead(statusCode, {
-    "Content-Type": "application/json"
+app.get("/", (req: Request, res: Response) => {
+  return res.json({
+    mensagem: "API REST de Futebol rodando com Express"
   });
+});
 
-  res.end(JSON.stringify(dados));
-}
-
-function lerBody(req: http.IncomingMessage): Promise<any> {
-  return new Promise((resolve, reject) => {
-    let body = "";
-
-    req.on("data", (parte) => {
-      body += parte.toString();
-    });
-
-    req.on("end", () => {
-      try {
-        if (!body) {
-          resolve({});
-          return;
-        }
-
-        resolve(JSON.parse(body));
-      } catch {
-        reject(new Error("JSON inválido"));
-      }
-    });
-  });
-}
-
-const server = http.createServer(async (req, res) => {
+app.post("/times", (req: Request, res: Response) => {
   try {
-    const method = req.method;
-    const url = req.url;
+    const dados = new CreateTimeDto(
+      req.body.nome,
+      req.body.cidade,
+      req.body.estadio
+    );
 
-    if (method === "GET" && url === "/") {
-      return enviarResposta(res, 200, {
-        mensagem: "API de Times e Partidas"
-      });
-    }
+    const novoTime = timeService.criar(dados);
 
-    if (method === "POST" && url === "/times") {
-      const body = await lerBody(req);
-
-      const dados = new CreateTimeDto(
-        body.nome,
-        body.cidade,
-        body.estadio
-      );
-
-      const novoTime = timeService.criar(dados);
-
-      return enviarResposta(res, 201, novoTime);
-    }
-
-    if (method === "GET" && url === "/times") {
-      return enviarResposta(res, 200, timeService.listar());
-    }
-
-    if (method === "POST" && url === "/partidas") {
-      const body = await lerBody(req);
-
-      const dados = new CreatePartidaDto(
-        Number(body.timeCasaId),
-        Number(body.timeForaId),
-        Number(body.golsCasa),
-        Number(body.golsFora),
-        body.data
-      );
-
-      const novaPartida = partidaService.criar(dados);
-
-      return enviarResposta(res, 201, novaPartida);
-    }
-
-    if (method === "GET" && url === "/partidas") {
-      return enviarResposta(res, 200, partidaService.listar());
-    }
-
-    return enviarResposta(res, 404, {
-      mensagem: "Rota não encontrada"
-    });
+    return res.status(201).json(novoTime);
   } catch (error) {
-    return enviarResposta(res, 400, {
-      mensagem: error instanceof Error ? error.message : "Erro ao processar a requisição"
+    return res.status(400).json({
+      mensagem: error instanceof Error ? error.message : "Erro ao criar time"
     });
   }
 });
 
-server.listen(3000, () => {
-  console.log("Servidor rodando em http://localhost:3000");
+app.get("/times", (req: Request, res: Response) => {
+  const times = timeService.listar();
+
+  return res.status(200).json(times);
+});
+
+app.post("/partidas", (req: Request, res: Response) => {
+  try {
+    const dados = new CreatePartidaDto(
+      Number(req.body.timeCasaId),
+      Number(req.body.timeForaId),
+      Number(req.body.golsCasa),
+      Number(req.body.golsFora),
+      req.body.data
+    );
+
+    const novaPartida = partidaService.criar(dados);
+
+    return res.status(201).json(novaPartida);
+  } catch (error) {
+    return res.status(400).json({
+      mensagem: error instanceof Error ? error.message : "Erro ao criar partida"
+    });
+  }
+});
+
+app.get("/partidas", (req: Request, res: Response) => {
+  const partidas = partidaService.listar();
+
+  return res.status(200).json(partidas);
+});
+
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
+  console.log(`Swagger rodando em http://localhost:${port}/api-docs`);
 });
