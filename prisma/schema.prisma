@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"  
+}
+
+model Time {
+  id      Int       @id @default(autoincrement())
+  nome    String
+  cidade  String
+  estadio String
+
+  partidasCasa Partida[] @relation("TimeCasa")
+  partidasFora Partida[] @relation("TimeFora")
+}
+
+model Partida {
+  id         Int      @id @default(autoincrement())
+  timeCasaId Int
+  timeForaId Int
+  golsCasa   Int
+  golsFora   Int
+  data       DateTime
+
+  timeCasa Time @relation("TimeCasa", fields: [timeCasaId], references: [id])
+  timeFora Time @relation("TimeFora", fields: [timeForaId], references: [id])
+}
