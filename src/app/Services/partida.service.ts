@@ -1,9 +1,8 @@
-import { partidas, times } from "../../database";
+import { prisma } from "../../prisma/client";
 import { CreatePartidaDto } from "../dtos/createPartidaDto";
-import { Partida } from "../entities/partida";
 
 export class PartidaService {
-  criar(dados: CreatePartidaDto): Partida {
+  async criar(dados: CreatePartidaDto) {
     if (
       !dados.timeCasaId ||
       !dados.timeForaId ||
@@ -18,36 +17,51 @@ export class PartidaService {
       throw new Error("O time da casa não pode ser igual ao time de fora");
     }
 
-    const timeCasa = times.find((time) => time.id === dados.timeCasaId);
-    const timeFora = times.find((time) => time.id === dados.timeForaId);
+    const timeCasa = await prisma.time.findUnique({
+      where: { id: dados.timeCasaId }
+    });
+
+    const timeFora = await prisma.time.findUnique({
+      where: { id: dados.timeForaId }
+    });
 
     if (!timeCasa || !timeFora) {
       throw new Error("Um dos times informados não existe");
     }
 
-    const novaPartida = new Partida(
-      partidas.length + 1,
-      dados.timeCasaId,
-      dados.timeForaId,
-      dados.golsCasa,
-      dados.golsFora,
-      dados.data
-    );
-
-    partidas.push(novaPartida);
+    const novaPartida = await prisma.partida.create({
+      data: {
+        timeCasaId: dados.timeCasaId,
+        timeForaId: dados.timeForaId,
+        golsCasa: dados.golsCasa,
+        golsFora: dados.golsFora,
+        data: new Date(dados.data)
+      },
+      include: {
+        timeCasa: true,
+        timeFora: true
+      }
+    });
 
     return novaPartida;
   }
 
-  listar(): unknown[] {
-    return partidas.map((partida) => {
-      const timeCasa = times.find((time) => time.id === partida.timeCasaId);
-      const timeFora = times.find((time) => time.id === partida.timeForaId);
+  async listar() {
+    const partidas = await prisma.partida.findMany({
+      include: {
+        timeCasa: true,
+        timeFora: true
+      },
+      orderBy: {
+        id: "asc"
+      }
+    });
 
+    return partidas.map((partida) => {
       return {
         id: partida.id,
-        timeCasa: timeCasa?.nome,
-        timeFora: timeFora?.nome,
+        timeCasa: partida.timeCasa.nome,
+        timeFora: partida.timeFora.nome,
         placar: `${partida.golsCasa} x ${partida.golsFora}`,
         data: partida.data
       };

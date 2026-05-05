@@ -25,6 +25,8 @@ coverage
 .env
 .env.
 !.env.example
+prisma/dev.db
+prisma/dev.db-journal
 
 # Logs
 logs
@@ -108,3 +110,4 @@ storybook-static
 # Optional if using Angular
 # =========================
 .angular
+/generated/prisma
